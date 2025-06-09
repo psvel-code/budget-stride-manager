@@ -1,17 +1,32 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { Trash2, TrendingUp, TrendingDown, Edit, Search } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import { useState } from 'react';
 import { Transaction } from '@/types/budget';
 
 interface TransactionListProps {
   transactions: Transaction[];
   onDelete: (id: string) => void;
+  onEdit: (transaction: Transaction) => void;
 }
 
-export const TransactionList = ({ transactions, onDelete }: TransactionListProps) => {
+export const TransactionList = ({ transactions, onDelete, onEdit }: TransactionListProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredTransactions = transactions.filter(transaction =>
+    transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const formatAmount = (amount: number) => {
@@ -22,55 +37,94 @@ export const TransactionList = ({ transactions, onDelete }: TransactionListProps
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
+    <Card className="backdrop-blur-sm bg-card/50 border shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <CardTitle className="text-xl">Recent Transactions</CardTitle>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {transactions.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
-            No transactions found. Add your first transaction to get started!
-          </p>
+        {filteredTransactions.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="mx-auto w-24 h-24 bg-muted/20 rounded-full flex items-center justify-center mb-4">
+              <TrendingUp className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground text-lg mb-2">
+              {searchTerm ? 'No matching transactions found' : 'No transactions found'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {searchTerm ? 'Try adjusting your search terms' : 'Add your first transaction to get started!'}
+            </p>
+          </div>
         ) : (
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {transactions.map((transaction) => (
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+            {filteredTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                className="group flex items-center justify-between p-4 border rounded-xl hover:bg-accent/50 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-card to-card/50"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={`p-3 rounded-full shadow-sm ${
                     transaction.type === 'income' 
-                      ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' 
-                      : 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
+                      ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-700 dark:from-green-900 dark:to-green-800 dark:text-green-300' 
+                      : 'bg-gradient-to-br from-red-100 to-red-200 text-red-700 dark:from-red-900 dark:to-red-800 dark:text-red-300'
                   }`}>
                     {transaction.type === 'income' ? (
-                      <TrendingUp className="h-4 w-4" />
+                      <TrendingUp className="h-5 w-5" />
                     ) : (
-                      <TrendingDown className="h-4 w-4" />
+                      <TrendingDown className="h-5 w-5" />
                     )}
                   </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-semibold text-foreground">{transaction.description}</p>
+                      <Badge 
+                        variant="secondary" 
+                        className="text-xs px-2 py-0.5 bg-muted/50"
+                      >
+                        {transaction.category}
+                      </Badge>
+                    </div>
                     <p className="text-sm text-muted-foreground">
-                      {transaction.category} • {formatDate(transaction.date)}
+                      {formatDate(transaction.date)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`font-semibold ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                
+                <div className="flex items-center gap-3">
+                  <span className={`font-bold text-lg ${
+                    transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onDelete(transaction.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(transaction)}
+                      className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                    >
+                      <Edit className="h-4 w-4 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(transaction.id)}
+                      className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

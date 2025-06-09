@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Filter, RotateCcw } from 'lucide-react';
 import { TransactionType } from '@/types/budget';
 
 interface FilterPanelProps {
@@ -19,6 +21,13 @@ export const FilterPanel = ({ onFilter }: FilterPanelProps) => {
   const [endDate, setEndDate] = useState('');
   const [type, setType] = useState<TransactionType | 'all'>('all');
   const [category, setCategory] = useState('');
+
+  const activeFilters = [
+    startDate && { label: `From: ${new Date(startDate).toLocaleDateString()}`, key: 'startDate' },
+    endDate && { label: `To: ${new Date(endDate).toLocaleDateString()}`, key: 'endDate' },
+    type !== 'all' && { label: `Type: ${type}`, key: 'type' },
+    category && { label: `Category: ${category}`, key: 'category' },
+  ].filter(Boolean);
 
   const handleFilter = () => {
     onFilter({
@@ -43,31 +52,72 @@ export const FilterPanel = ({ onFilter }: FilterPanelProps) => {
     });
   };
 
+  const removeFilter = (filterKey: string) => {
+    switch (filterKey) {
+      case 'startDate':
+        setStartDate('');
+        break;
+      case 'endDate':
+        setEndDate('');
+        break;
+      case 'type':
+        setType('all');
+        break;
+      case 'category':
+        setCategory('');
+        break;
+    }
+    // Auto-apply filters after removal
+    setTimeout(handleFilter, 0);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
+      {/* Active Filters */}
+      {activeFilters.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="start-date">From</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Active Filters</Label>
+          <div className="flex flex-wrap gap-2">
+            {activeFilters.map((filter: any) => (
+              <Badge key={filter.key} variant="secondary" className="text-xs px-2 py-1 flex items-center gap-1">
+                {filter.label}
+                <button
+                  onClick={() => removeFilter(filter.key)}
+                  className="ml-1 hover:bg-muted rounded-full p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="start-date" className="text-sm font-medium">From</Label>
           <Input
             id="start-date"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            className="text-sm"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end-date">To</Label>
+          <Label htmlFor="end-date" className="text-sm font-medium">To</Label>
           <Input
             id="end-date"
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            className="text-sm"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="type-filter">Type</Label>
+        <Label htmlFor="type-filter" className="text-sm font-medium">Type</Label>
         <Select value={type} onValueChange={(value: TransactionType | 'all') => setType(value)}>
           <SelectTrigger>
             <SelectValue />
@@ -81,20 +131,32 @@ export const FilterPanel = ({ onFilter }: FilterPanelProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category-filter">Category</Label>
+        <Label htmlFor="category-filter" className="text-sm font-medium">Category</Label>
         <Input
           id="category-filter"
           placeholder="Search by category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          className="text-sm"
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button onClick={handleFilter} className="flex-1">
-          Apply Filters
+      <div className="flex gap-2 pt-2">
+        <Button 
+          onClick={handleFilter} 
+          className="flex-1 bg-gradient-to-r from-primary to-primary/80"
+          size="sm"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Apply
         </Button>
-        <Button onClick={handleReset} variant="outline" className="flex-1">
+        <Button 
+          onClick={handleReset} 
+          variant="outline" 
+          className="flex-1"
+          size="sm"
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
           Reset
         </Button>
       </div>
