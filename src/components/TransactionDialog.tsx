@@ -5,17 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Transaction, TransactionType } from '@/types/budget';
+import { Transaction } from '@/hooks/useTransactions';
 
 interface TransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (transaction: Omit<Transaction, 'id'>) => void;
+  onSubmit: (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => void;
   transaction?: Transaction | null;
 }
 
 export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }: TransactionDialogProps) => {
-  const [type, setType] = useState<TransactionType>('expense');
+  const [type, setType] = useState<'income' | 'expense'>('expense');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -74,7 +74,7 @@ export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }:
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={(value: TransactionType) => setType(value)}>
+              <Select value={type} onValueChange={(value: 'income' | 'expense') => setType(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -1,38 +1,37 @@
 
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Moon, Sun, Plus } from 'lucide-react';
+import { Moon, Sun, Plus, LogOut, User } from 'lucide-react';
 import { TransactionDialog } from './TransactionDialog';
 import { TransactionList } from './TransactionList';
 import { SummaryPanel } from './SummaryPanel';
 import { FilterPanel } from './FilterPanel';
 import { ChartsPanel } from './ChartsPanel';
-import { Transaction, TransactionType } from '@/types/budget';
+import { TransactionType } from '@/types/budget';
 import { exportToCSV } from '@/utils/csvExport';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTransactions, Transaction } from '@/hooks/useTransactions';
 
 export const BudgetApp = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { transactions, loading: transactionsLoading, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const { toast } = useToast();
 
-  // Load data from localStorage on mount
+  // Redirect to auth if not authenticated
+  if (!authLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Load dark mode preference
   useEffect(() => {
-    const savedTransactions = localStorage.getItem('budget-transactions');
     const savedDarkMode = localStorage.getItem('budget-dark-mode');
-    
-    if (savedTransactions) {
-      const parsed = JSON.parse(savedTransactions);
-      setTransactions(parsed);
-      setFilteredTransactions(parsed);
-    }
-    
     if (savedDarkMode) {
       const isDark = JSON.parse(savedDarkMode);
       setDarkMode(isDark);
@@ -42,9 +41,8 @@ export const BudgetApp = () => {
     }
   }, []);
 
-  // Save transactions to localStorage
+  // Update filtered transactions when transactions change
   useEffect(() => {
-    localStorage.setItem('budget-transactions', JSON.stringify(transactions));
     setFilteredTransactions(transactions);
   }, [transactions]);
 
@@ -58,34 +56,8 @@ export const BudgetApp = () => {
     }
   }, [darkMode]);
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: Date.now().toString(),
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-    toast({
-      title: "Transaction Added",
-      description: `${transaction.type} of $${transaction.amount} has been recorded.`,
-    });
-  };
-
-  const updateTransaction = (updatedTransaction: Transaction) => {
-    setTransactions(prev => 
-      prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
-    );
-    toast({
-      title: "Transaction Updated",
-      description: "Transaction has been updated successfully.",
-    });
-  };
-
-  const deleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
-    toast({
-      title: "Transaction Deleted",
-      description: "Transaction has been removed successfully.",
-    });
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   const handleEdit = (transaction: Transaction) => {
@@ -98,11 +70,11 @@ export const BudgetApp = () => {
     setEditingTransaction(null);
   };
 
-  const handleSubmit = (transaction: Omit<Transaction, 'id'>) => {
+  const handleSubmit = async (transactionData: Omit<Transaction, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     if (editingTransaction) {
-      updateTransaction({ ...transaction, id: editingTransaction.id });
+      await updateTransaction(editingTransaction.id, transactionData);
     } else {
-      addTransaction(transaction);
+      await addTransaction(transactionData);
     }
     handleDialogClose();
   };
@@ -138,12 +110,29 @@ export const BudgetApp = () => {
   };
 
   const handleExport = () => {
-    exportToCSV(filteredTransactions);
-    toast({
-      title: "Export Successful",
-      description: `${filteredTransactions.length} transactions exported to CSV.`,
-    });
+    // Convert transactions to the format expected by exportToCSV
+    const exportData = filteredTransactions.map(t => ({
+      id: t.id,
+      type: t.type,
+      description: t.description,
+      amount: t.amount,
+      date: t.date,
+      category: t.category
+    }));
+    exportToCSV(exportData);
   };
+
+  const handleDelete = async (id: string) => {
+    await deleteTransaction(id);
+  };
+
+  if (authLoading || transactionsLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 transition-colors duration-300">
@@ -155,7 +144,9 @@ export const BudgetApp = () => {
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                 Budget Manager
               </h1>
-              <p className="text-muted-foreground text-sm">Track your finances with ease</p>
+              <p className="text-muted-foreground text-sm">
+                Welcome back, {user?.user_metadata?.full_name || user?.email}
+              </p>
             </div>
           </div>
           
@@ -181,6 +172,16 @@ export const BudgetApp = () => {
                 Toggle dark mode
               </Label>
             </div>
+
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
 
@@ -201,6 +202,7 @@ export const BudgetApp = () => {
                   className="w-full"
                   variant="outline"
                   size="sm"
+                  disabled={filteredTransactions.length === 0}
                 >
                   Export to CSV ({filteredTransactions.length} transactions)
                 </Button>
@@ -212,7 +214,7 @@ export const BudgetApp = () => {
           <div className="lg:col-span-8 space-y-6">
             <TransactionList 
               transactions={filteredTransactions} 
-              onDelete={deleteTransaction}
+              onDelete={handleDelete}
               onEdit={handleEdit}
             />
             
