@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +14,15 @@ import { LogIn, UserPlus, Mail, Lock, User } from 'lucide-react';
 export default function Auth() {
   const { user, signIn, signUp, signInWithGoogle, loading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   // Redirect if already authenticated
-  if (user && !loading) {
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -50,6 +53,7 @@ export default function Auth() {
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       });
+      // Navigation will be handled by the useEffect above when user state updates
     }
     setIsLoading(false);
   };
@@ -81,6 +85,8 @@ export default function Auth() {
         title: "Account Created!",
         description: "Please check your email to verify your account.",
       });
+      // For email verification flow, don't navigate immediately
+      // User will be redirected after email verification
     }
     setIsLoading(false);
   };
@@ -95,8 +101,9 @@ export default function Auth() {
         description: error.message,
         variant: "destructive",
       });
+      setIsLoading(false);
     }
-    setIsLoading(false);
+    // Don't set loading to false here as the redirect will handle it
   };
 
   if (loading) {
@@ -105,6 +112,11 @@ export default function Auth() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // If user is authenticated, the useEffect will handle navigation
+  if (user) {
+    return null;
   }
 
   return (

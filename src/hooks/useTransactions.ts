@@ -38,7 +38,13 @@ export const useTransactions = () => {
 
       if (error) throw error;
 
-      setTransactions(data || []);
+      // Properly type the data to ensure compatibility
+      const typedData: Transaction[] = (data || []).map(item => ({
+        ...item,
+        type: item.type as 'income' | 'expense'
+      }));
+
+      setTransactions(typedData);
     } catch (error: any) {
       console.error('Error fetching transactions:', error);
       toast({
@@ -67,13 +73,18 @@ export const useTransactions = () => {
 
       if (error) throw error;
 
-      setTransactions(prev => [data, ...prev]);
+      const typedData: Transaction = {
+        ...data,
+        type: data.type as 'income' | 'expense'
+      };
+
+      setTransactions(prev => [typedData, ...prev]);
       toast({
         title: "Transaction Added",
         description: `${transaction.type} of $${transaction.amount} has been recorded.`,
       });
 
-      return { data, error: null };
+      return { data: typedData, error: null };
     } catch (error: any) {
       console.error('Error adding transaction:', error);
       toast({
@@ -100,8 +111,13 @@ export const useTransactions = () => {
 
       if (error) throw error;
 
+      const typedData: Transaction = {
+        ...data,
+        type: data.type as 'income' | 'expense'
+      };
+
       setTransactions(prev =>
-        prev.map(t => t.id === id ? { ...t, ...data } : t)
+        prev.map(t => t.id === id ? { ...t, ...typedData } : t)
       );
 
       toast({
@@ -109,7 +125,7 @@ export const useTransactions = () => {
         description: "Transaction has been updated successfully.",
       });
 
-      return { data, error: null };
+      return { data: typedData, error: null };
     } catch (error: any) {
       console.error('Error updating transaction:', error);
       toast({
