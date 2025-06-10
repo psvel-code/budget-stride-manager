@@ -70,59 +70,59 @@ export const TransactionList = ({ transactions, onDelete, onEdit }: TransactionL
             {filteredTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="group flex items-center justify-between p-4 border rounded-xl hover:bg-accent/50 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-card to-card/50"
+                className="flex items-center justify-between p-4 border rounded-xl hover:bg-accent/50 hover:shadow-md transition-all duration-200 bg-gradient-to-r from-card to-card/50 overflow-x-hidden"
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className={`p-3 rounded-full shadow-sm ${
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`p-2 sm:p-3 rounded-full shadow-sm flex-shrink-0 ${
                     transaction.type === 'income' 
                       ? 'bg-gradient-to-br from-green-100 to-green-200 text-green-700 dark:from-green-900 dark:to-green-800 dark:text-green-300' 
                       : 'bg-gradient-to-br from-red-100 to-red-200 text-red-700 dark:from-red-900 dark:to-red-800 dark:text-red-300'
                   }`}>
                     {transaction.type === 'income' ? (
-                      <TrendingUp className="h-5 w-5" />
+                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
                     ) : (
-                      <TrendingDown className="h-5 w-5" />
+                      <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5" />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-foreground">{transaction.description}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <p className="font-semibold text-foreground truncate max-w-[150px] sm:max-w-full">{transaction.description}</p>
                       <Badge 
                         variant="secondary" 
-                        className="text-xs px-2 py-0.5 bg-muted/50"
+                        className="text-xs px-2 py-0.5 bg-muted/50 truncate max-w-[100px] sm:max-w-full"
                       >
                         {transaction.category}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {formatDate(transaction.date)}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <span className={`font-bold text-lg ${
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <span className={`font-bold text-sm sm:text-lg truncate ${
                     transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
                   </span>
                   
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onEdit(transaction)}
-                      className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                      className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
                     >
-                      <Edit className="h-4 w-4 text-blue-600" />
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onDelete(transaction.id)}
-                      className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900"
+                      className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900"
                     >
-                      <Trash2 className="h-4 w-4 text-red-600" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                     </Button>
                   </div>
                 </div>

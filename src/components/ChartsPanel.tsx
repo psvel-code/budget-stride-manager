@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Transaction } from '@/types/budget';
 
 interface ChartsPanelProps {
@@ -59,8 +59,9 @@ export const ChartsPanel = ({ transactions }: ChartsPanelProps) => {
     );
   }
 
+  // Render both charts side by side on larger screens
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
       {pieChartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -69,22 +70,23 @@ export const ChartsPanel = ({ transactions }: ChartsPanelProps) => {
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Pie
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
+                    label={false} // Remove inline labels to prevent overlap
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                  <Legend layout="vertical" verticalAlign="middle" align="right" />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -105,6 +107,7 @@ export const ChartsPanel = ({ transactions }: ChartsPanelProps) => {
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip formatter={(value) => [`$${value}`, '']} />
+                  <Legend />
                   <Bar dataKey="income" fill="#82ca9d" name="Income" />
                   <Bar dataKey="expenses" fill="#ff7c7c" name="Expenses" />
                 </BarChart>
