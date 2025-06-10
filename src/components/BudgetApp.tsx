@@ -136,40 +136,41 @@ export const BudgetApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 transition-colors duration-300">
-      <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
-        {/* Header - Mobile Responsive */}
-        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-center gap-4 min-w-0 flex-1">
+      <div className="container mx-auto p-3 sm:p-4 lg:p-6 max-w-7xl">
+        {/* Header - Improved Mobile Layout */}
+        <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <div className="flex flex-col min-w-0">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
                   Budget Manager
                 </h1>
-                <p className="text-muted-foreground text-xs sm:text-sm truncate">
-                  Welcome back, {user?.user_metadata?.full_name || user?.email}
+                <p className="text-muted-foreground text-xs sm:text-sm lg:text-base truncate">
+                  Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
                 </p>
               </div>
             </div>
             
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button 
                 onClick={() => setIsDialogOpen(true)}
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md flex-1 sm:flex-none"
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md order-1 sm:order-none"
                 size="sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                <span className="hidden xs:inline">Add Transaction</span>
-                <span className="xs:hidden">Add</span>
+                <span className="sm:hidden">Add Transaction</span>
+                <span className="hidden sm:inline lg:hidden">Add</span>
+                <span className="hidden lg:inline">Add Transaction</span>
               </Button>
               
-              <div className="flex items-center gap-2 bg-card/50 backdrop-blur-sm rounded-lg p-2 border">
-                <Sun className="h-4 w-4 text-yellow-500" />
+              <div className="flex items-center justify-between sm:justify-center gap-3 bg-card/50 backdrop-blur-sm rounded-lg p-2 sm:p-2 border order-2 sm:order-none">
+                <Sun className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                 <Switch
                   checked={darkMode}
                   onCheckedChange={setDarkMode}
                   id="dark-mode"
                 />
-                <Moon className="h-4 w-4 text-blue-500" />
+                <Moon className="h-4 w-4 text-blue-500 flex-shrink-0" />
                 <Label htmlFor="dark-mode" className="sr-only">
                   Toggle dark mode
                 </Label>
@@ -179,52 +180,67 @@ export const BudgetApp = () => {
                 onClick={handleSignOut}
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-2 order-3 sm:order-none"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign Out</span>
+                <LogOut className="h-4 w-4 flex-shrink-0" />
+                <span className="sm:hidden">Sign Out</span>
+                <span className="hidden sm:inline lg:hidden">Out</span>
+                <span className="hidden lg:inline">Sign Out</span>
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Main Content - Mobile First Layout */}
-        <div className="space-y-6">
-          {/* Summary Panel - Full Width on Mobile */}
+        {/* Main Content - Improved Responsive Layout */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Summary Panel - Always Full Width */}
           <div className="w-full">
             <SummaryPanel transactions={filteredTransactions} />
           </div>
 
-          {/* Filter Panel - Full Width on Mobile */}
-          <Card className="backdrop-blur-sm bg-card/50 border shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Filter & Export</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FilterPanel onFilter={handleFilter} />
-              <Button 
-                onClick={handleExport} 
-                className="w-full"
-                variant="outline"
-                size="sm"
-                disabled={filteredTransactions.length === 0}
-              >
-                Export to CSV ({filteredTransactions.length} transactions)
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Two Column Layout for Desktop, Single Column for Mobile */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+            
+            {/* Left Column - Filter & Charts */}
+            <div className="xl:col-span-1 space-y-4 sm:space-y-6">
+              {/* Filter Panel */}
+              <Card className="backdrop-blur-sm bg-card/50 border shadow-lg">
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg">Filter & Export</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <FilterPanel onFilter={handleFilter} />
+                  <Button 
+                    onClick={handleExport} 
+                    className="w-full"
+                    variant="outline"
+                    size="sm"
+                    disabled={filteredTransactions.length === 0}
+                  >
+                    <span className="sm:hidden">Export CSV ({filteredTransactions.length})</span>
+                    <span className="hidden sm:inline">Export to CSV ({filteredTransactions.length} transactions)</span>
+                  </Button>
+                </CardContent>
+              </Card>
 
-          {/* Transaction List - Full Width on Mobile */}
-          <div className="w-full">
-            <TransactionList 
-              transactions={filteredTransactions} 
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-            />
+              {/* Charts Panel for Desktop */}
+              <div className="hidden xl:block">
+                <ChartsPanel transactions={filteredTransactions} />
+              </div>
+            </div>
+            
+            {/* Right Column - Transaction List */}
+            <div className="xl:col-span-2">
+              <TransactionList 
+                transactions={filteredTransactions} 
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            </div>
           </div>
           
-          {/* Charts Panel - Full Width on Mobile */}
-          <div className="w-full">
+          {/* Charts Panel for Mobile/Tablet - Shows below transactions */}
+          <div className="xl:hidden w-full">
             <ChartsPanel transactions={filteredTransactions} />
           </div>
         </div>
