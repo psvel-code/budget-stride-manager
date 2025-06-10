@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Transaction } from '@/hooks/useTransactions';
+import { useCategories } from '@/hooks/useCategories';
 
 interface TransactionDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }:
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [category, setCategory] = useState('');
+  const { categories } = useCategories();
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
@@ -58,8 +60,20 @@ export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }:
     }
   };
 
-  const incomeCategories = ['Salary', 'Freelance', 'Investment', 'Business', 'Other Income'];
-  const expenseCategories = ['Food', 'Transportation', 'Housing', 'Utilities', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
+  // Default categories
+  const defaultIncomeCategories = ['Salary', 'Freelance', 'Investment', 'Business', 'Other Income'];
+  const defaultExpenseCategories = ['Food', 'Transportation', 'Housing', 'Utilities', 'Entertainment', 'Healthcare', 'Shopping', 'Other'];
+
+  // Get custom categories for the selected type
+  const customCategories = categories.filter(c => c.type === type).map(c => c.name);
+  
+  // Combine default and custom categories
+  const allCategories = type === 'income' 
+    ? [...defaultIncomeCategories, ...customCategories]
+    : [...defaultExpenseCategories, ...customCategories];
+
+  // Remove duplicates and sort
+  const uniqueCategories = [...new Set(allCategories)].sort();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,7 +88,10 @@ export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }:
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={(value: 'income' | 'expense') => setType(value)}>
+              <Select value={type} onValueChange={(value: 'income' | 'expense') => {
+                setType(value);
+                setCategory(''); // Reset category when type changes
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -118,7 +135,7 @@ export const TransactionDialog = ({ open, onOpenChange, onSubmit, transaction }:
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(type === 'income' ? incomeCategories : expenseCategories).map((cat) => (
+                  {uniqueCategories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
                     </SelectItem>

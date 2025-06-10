@@ -11,6 +11,7 @@ import { TransactionList } from './TransactionList';
 import { SummaryPanel } from './SummaryPanel';
 import { FilterPanel } from './FilterPanel';
 import { ChartsPanel } from './ChartsPanel';
+import { CategoryManager } from './CategoryManager';
 import { TransactionType } from '@/types/budget';
 import { exportToCSV } from '@/utils/csvExport';
 import { useAuth } from '@/contexts/AuthContext';
@@ -196,7 +197,7 @@ export const BudgetApp = () => {
           {/* Two Column Layout for Desktop, Single Column for Mobile */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
             
-            {/* Left Column - Filter & Charts */}
+            {/* Left Column - Filter & Categories */}
             <div className="xl:col-span-1 space-y-4 sm:space-y-6">
               {/* Filter Panel */}
               <Card className="backdrop-blur-sm bg-card/50 border shadow-lg">
@@ -214,6 +215,9 @@ export const BudgetApp = () => {
                   </Button>
                 </div>
               </Card>
+
+              {/* Category Manager */}
+              <CategoryManager />
             </div>
             
             {/* Right Column - Transaction List */}
